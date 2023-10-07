@@ -132,7 +132,7 @@ def calculate_mmr_history_roughly(matches=None,current_mmr=4670):
     print(points)
     return points
     #
-def plot_mmr_over_time(coordinates):
+def plot_mmr_over_time_and_save(coordinates,player_name):
     # Extract timestamps and MMRs from the named tuples
     timestamps = [point.timestamp for point in coordinates]
     mmrs = [point.mmr for point in coordinates]
@@ -160,7 +160,7 @@ def plot_mmr_over_time(coordinates):
     sub_dir=get_data_directory() / player_name
     sub_dir.mkdir(parents=True, exist_ok=True)
     filename = get_data_directory() / player_name/ f"{current_time}.png"
-    plt.savefig(filename)
+    plt.savefig(filename,dpi=1080)
     plt.show()
         
 def main():
