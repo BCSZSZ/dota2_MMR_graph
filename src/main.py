@@ -137,29 +137,41 @@ def plot_mmr_over_time(coordinates):
     timestamps = [point.timestamp for point in coordinates]
     mmrs = [point.mmr for point in coordinates]
 
-    # Convert timestamps to '2023/10/07 19:32:42' format
-    dates = [datetime.utcfromtimestamp(ts).strftime('%Y/%m/%d %H:%M:%S') for ts in timestamps]
+    # Convert timestamps to datetime objects
+    dates = [datetime.utcfromtimestamp(ts) for ts in timestamps]
 
     # Plotting using matplotlib
     plt.figure(figsize=(12, 6))
     plt.plot(dates, mmrs, marker='o', linestyle='-')
+    
+    # Formatting the x-axis for dates
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y/%m/%d %H:%M:%S'))
+    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
     plt.xticks(rotation=45)  # Rotate x-axis labels for better visibility
+
     plt.xlabel('Date (YYYY/MM/DD HH:MM:SS)')
     plt.ylabel('MMR')
     plt.title('MMR Over Time')
     plt.tight_layout()
-    plt.grid(True)           # Add grid lines
+    plt.grid(True)  # Add grid lines
+   
+    # save to player data
+    current_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    sub_dir=get_data_directory() / player_name
+    sub_dir.mkdir(parents=True, exist_ok=True)
+    filename = get_data_directory() / player_name/ f"{current_time}.png"
+    plt.savefig(filename)
     plt.show()
         
 def main():
     # who is playing?
-    player="maofeng"
+    player="liaoweiran"
     current_mmr=4670
     match_data=get_100_rank_match_data_and_save(player)
     mmr_Points=calculate_mmr_history_roughly(match_data,current_mmr)
     mmr_Points.reverse()
     print(mmr_Points)
-    plot_mmr_over_time(mmr_Points)
+    plot_mmr_over_time_and_save(mmr_Points,player)
 
 
 if __name__ == "__main__":
