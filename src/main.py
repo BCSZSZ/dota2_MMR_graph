@@ -3,6 +3,28 @@ import json
 from pathlib import Path
 from collections import namedtuple
 import time
+import matplotlib.pyplot as plt
+from datetime import datetime
+import random
+import matplotlib.dates as mdates
+
+def generate_noise(num_points=100, noise_range=(-5, 5)):
+    """generate a noise in range of -+5. since we are not accurate at the first place, no harm doing that.
+
+    Args:
+        num_points (int, optional): we get 100 matches, so it is 100. Defaults to 100.
+        noise_range (tuple, optional): -+5range. Defaults to (-5, 5).
+
+    Returns:
+        noise: a -+5 list.
+    """
+    # Generate num_points-1 random numbers within the noise range
+    noise = [random.randint(noise_range[0], noise_range[1]) for _ in range(num_points - 1)]
+    
+    # Ensure the sum of all noises is 0 by setting the last noise value
+    noise.append(-sum(noise))
+    
+    return noise
 
 
 def get_accountID_path(filename="accountID.json"):
@@ -90,31 +112,44 @@ def calculate_mmr_history_roughly(matches=None,current_mmr=4670):
     Returns:
     mmrList -- list of last 100 mmr.
     """
-    
-    # test data
-    player_match_path=get_player_match_path("maofeng")
-    with open(player_match_path, "r") as json_file:
-        testMatches = json.load(json_file)
-        
     Coordinate = namedtuple("Coordinate", ["timestamp", "mmr"])
     current_timestamp_int = int(time.time())
     start_point = Coordinate(current_timestamp_int, current_mmr)  # 
 
-    # 如果有多个坐标
+
     points = []
     points.append(start_point)
         
-    for match in testMatches:
-        if  (match["player_slot"] <=127 and match["radiant_win"] == True) or (match["player_slot"] >=128 and match["radiant_win"] == False):
-            current_mmr=current_mmr-25
+    # add some noise just for fun
+    noise=generate_noise()
+    for i in range(len(matches)):
+        if  (matches[i]["player_slot"] <=127 and matches[i]["radiant_win"] == True) or (matches[i]["player_slot"] >=128 and matches[i]["radiant_win"] == False):
+            current_mmr=current_mmr-25+noise[i]
         else:
-            current_mmr=current_mmr+25
-        points.append(Coordinate(match["start_time"],current_mmr))
+            current_mmr=current_mmr+25+noise[i]
+        points.append(Coordinate(matches[i]["start_time"],current_mmr))
     print("points")
     print(points)
     return points
     #
-    
+def plot_mmr_over_time(coordinates):
+    # Extract timestamps and MMRs from the named tuples
+    timestamps = [point.timestamp for point in coordinates]
+    mmrs = [point.mmr for point in coordinates]
+
+    # Convert timestamps to '2023/10/07 19:32:42' format
+    dates = [datetime.utcfromtimestamp(ts).strftime('%Y/%m/%d %H:%M:%S') for ts in timestamps]
+
+    # Plotting using matplotlib
+    plt.figure(figsize=(12, 6))
+    plt.plot(dates, mmrs, marker='o', linestyle='-')
+    plt.xticks(rotation=45)  # Rotate x-axis labels for better visibility
+    plt.xlabel('Date (YYYY/MM/DD HH:MM:SS)')
+    plt.ylabel('MMR')
+    plt.title('MMR Over Time')
+    plt.tight_layout()
+    plt.grid(True)           # Add grid lines
+    plt.show()
         
 def main():
     # who is playing?
@@ -124,6 +159,7 @@ def main():
     mmr_Points=calculate_mmr_history_roughly(match_data,current_mmr)
     mmr_Points.reverse()
     print(mmr_Points)
+    plot_mmr_over_time(mmr_Points)
 
 
 if __name__ == "__main__":
