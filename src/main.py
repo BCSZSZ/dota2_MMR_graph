@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import random
 import matplotlib.dates as mdates
+from itertools import islice
+
 
 def generate_noise(num_points=100, noise_range=(-5, 5)):
     """generate a noise in range of -+5. since we are not accurate at the first place, no harm doing that.
@@ -166,7 +168,7 @@ def plot_mmr_over_time_and_save(coordinates,player_name):
     plt.savefig(filename,dpi=1080)
     plt.show()
         
-def calculate_win_rate_and_others_and_save(playerName,matches=None):
+def calculate_win_rate_and_others_and_save(playerName="test",matches=None):
     """calculate or collect some figure based on the match data
     for now I think the following should be noted.
     1 solo rank count
@@ -183,13 +185,15 @@ def calculate_win_rate_and_others_and_save(playerName,matches=None):
     
 
     Args:
+        playerName: who we are investgating.
         matches (list, optional): recent 100 rank match data. Defaults to None.
     """
     win_rate=0
     solo_rank_win_rate=0
     party_rank_win_rate=0
     unknown_rank_win_rate=0
-    first_match_date=0
+    first_match_timestamp=0
+    last_match_timestamp=0
     solo_rank_count=0
     party_rank_count=0
     unknown_rank_count=0
@@ -223,23 +227,49 @@ def calculate_win_rate_and_others_and_save(playerName,matches=None):
                 party_rank_count=party_rank_count+1
                 party_lose_count=party_lose_count+1
         if i == 1:
-            first_match_date=matches[i]["start_time"]
+            first_match_timestamp=matches[i]["start_time"]
+        if i == (len(matches)-1):
+            last_match_timestamp=matches[i]["start_time"]
     
     if solo_rank_count!=0:
-        solo_rank_win_rate=solo_win_count/solo_rank_count*100
+        solo_rank_win_rate=round((solo_win_count/solo_rank_count*100), 2)
     if party_rank_count!=0:
-        party_rank_win_rate=party_win_count/party_rank_count*100
+        party_rank_win_rate=round((party_win_count/party_rank_count*100), 2)
     if unknown_rank_count!=0:
-        unknown_rank_win_rate=unknown_win_count/unknown_rank_count*100
-    win_rate=(solo_win_count+party_win_count+unknown_win_count)/(solo_rank_count+party_rank_count+unknown_rank_count)*100
+        unknown_rank_win_rate=round((unknown_win_count/unknown_rank_count*100), 2)
+    win_rate=round((solo_win_count+party_win_count+unknown_win_count)/(solo_rank_count+party_rank_count+unknown_rank_count)*100, 2)
     
-    dt_object = datetime.utcfromtimestamp(first_match_date)
-    formatted_date = dt_object.strftime('%Y/%m/%d %H:%M:%S') 
+    first_date_object = datetime.utcfromtimestamp(first_match_timestamp)
+    last_date_object = datetime.utcfromtimestamp(last_match_timestamp)
+    first_formatted_date = first_date_object.strftime('%Y/%m/%d %H:%M:%S') 
+    last_formatted_date = last_date_object.strftime('%Y/%m/%d %H:%M:%S') 
     
+    
+    timestamp_now = int(datetime.now().timestamp())
     print(f"当前政审的是{playerName}")
     print(f"本次读取了{match_count}条天梯比赛数据。")
-    print(f"其中，最早的一把是{formatted_date}打的")
+    print(f"其中，最早的一把是{first_formatted_date}打的")
+        #如果最远一把是一年以前
+    if (abs(timestamp_now-first_match_timestamp)/(24*60*60))>365:
+        print(f"哥们最早一把天梯都{(abs(timestamp_now-first_match_timestamp)/(24*60*60))}天以前了，最近一年已经不在天梯厮杀了呀！")
+    
+    print(f"而最近的一把则是{last_formatted_date}打的")
+        #如果最近一把是一天以前
+    if (abs(timestamp_now-last_match_timestamp)/(24*60*60))<1.5:
+        print(f"哥们最近两天刚打过天梯，怎么说，刀瘾又犯了？")
+        
+    
     print(f"{playerName}的总体胜率是 {win_rate}%")
+    if win_rate < 45:
+        print("哥们，你可能是个赠品马。")
+    elif 45 <= win_rate < 50:
+        print("从这一百把平均来看，你的整体表现更像一个下等马，兄弟。")
+    elif 50 <= win_rate < 55:
+        print("有时带领大家冲向胜利，有时躺，有时被坑得睡不着，你就像大多数人一样是个中等马。")
+    else:
+        print("我命由我不由天，你一定下了功夫，试图把胜利掌握在自己手中。你做到了，我的上等马兄弟。")
+    print("")
+    
     print(f"{playerName}的单排把数是 {solo_rank_count}把")
     if solo_rank_count!=0:
         print(f"{playerName}的单排胜率是 {solo_rank_win_rate}%")
@@ -249,25 +279,106 @@ def calculate_win_rate_and_others_and_save(playerName,matches=None):
     print(f"{playerName}的组队状态不明天梯比赛把数是 {unknown_rank_count}把")
     if unknown_rank_count!=0:
         print(f"{playerName}的组队状态不明天体比赛胜率是 {unknown_rank_win_rate}%")
+        
+    if abs(party_rank_win_rate-solo_rank_win_rate) > 10:
+        if party_rank_win_rate>solo_rank_win_rate:
+            print(f"和兄弟在一起你赢得更多，无兄弟不dota！")
+        if party_rank_win_rate<solo_rank_win_rate:
+            print(f"你在单排时更能发挥实力，你就是孤独风中一匹狼！")
+    print("")
+    
+def calculate_hero_related_and_others_and_save(playerName,matches=None):
+    """get the dota2 hero info from dotaconstants
+    calculate the 
+    top 5 most played hero and their win rate.
+    
+    top 5 highest win rate hero (at least 10 matches.)
+
+    Args:
+        playerName: who we are investgating.
+        matches (list, optional): recent 100 rank match data. Defaults to None.
+    """
+
+    with open(f'{get_data_directory()/"dotaconstants/build/heroes.json"}', 'r') as file:
+        hero_data = json.load(file)
+
+    # Step 2: iterate the dict
+    for key in hero_data:
+        hero_data[key]['count'] = 0  # 0
+        hero_data[key]['win_count'] = 0  # 0
+        hero_data[key]['win_rate'] = 0  # 0
+        
+    for i in range(len(matches)):
+        # every game count hero
+        hero_data[str(matches[i]["hero_id"])]['count'] +=1  # 0
+        if  (matches[i]["player_slot"] <=127 and matches[i]["radiant_win"] == True) or (matches[i]["player_slot"] >=128 and matches[i]["radiant_win"] == False):
+            # win game
+            # count hero win
+            hero_data[str(matches[i]["hero_id"])]['win_count'] +=1  # 0
+    
+    # calculate the win rate for all none zero hero.
+    for key in hero_data:
+        if hero_data[key]['count'] == 0:
+            continue
+        hero_data[key]['win_rate'] = round(hero_data[key]['win_count']/hero_data[key]['count']*100,2)
+        
+        
+    # sort the dict by play
+    most_played_sort_hero_data = dict(sorted(hero_data.items(), key=lambda item: item[1]['count'], reverse=True))
+    
+    # get rid of the hero less than 10
+    filtered_hero_data = {k: v for k, v in hero_data.items() if v['count'] >= 10}    
+    
+    
+    most_winning_sort_hero_data = dict(sorted(filtered_hero_data.items(), key=lambda item: item[1]['count'], reverse=True))
+    
+    # output
+    print(f"接下来是英雄部分的些许数据分析。")
+    print(f"使用次数top5的5个英雄和他们的胜率是：")
+    print("")
+
+    for key, value in islice(most_played_sort_hero_data.items(), 5):
+        print(f"{value['localized_name']} 场数{value['count']} 胜率{value['win_rate']}%")
+        print("")
+    print(f"胜率top5的5个英雄和他们的场数是：")
+    print(f"注：可能结果不足5个")
+    print("")
+    more_than_10_game_hero = 5 if len(filtered_hero_data) >= 5 else len(filtered_hero_data)    
+    for key, value in islice(most_winning_sort_hero_data.items(), more_than_10_game_hero):
+        print(f"{value['localized_name']} 胜率{value['win_rate']}% 场数{value['count']} ")
+        print("")
+    print(f"怎么样，这样的结果是否符合你的预期呢？")
     
     
     
 
+        
+        
+        
+
 def main():
     # who is playing?
-    player="caozei"
+    player="yubao1"
     current_mmr=4670
     #
     
-    # get and save match data
+    
+    
+    # # get and save match data
     match_data=get_100_rank_match_data_and_save(player)
+    
+    # dummy
+    # with open(f'{get_data_directory()/"maofeng/matchdata.json"}', 'r') as file:
+    #     match_data = json.load(file)
+
     #
     
     # calculate some stats based on the match data.
-    
+    # party and solo win rate  
     calculate_win_rate_and_others_and_save(player,match_data)
     
-    
+    # heroes win rate
+    calculate_hero_related_and_others_and_save(player,match_data)
     
     # # calculate rough mmr history and plot it.
     # mmr_Points=calculate_mmr_history_roughly(match_data,current_mmr)
