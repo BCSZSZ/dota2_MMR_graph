@@ -72,7 +72,7 @@ def get_100_rank_match_data_and_save(playerName):
     Parameters:
     playername -- str,player's name like maofeng
     Returns:
-    matches -- matches data in json]
+    matches -- matches data in json
     """
 
     json_path=get_accountID_path()
@@ -84,7 +84,7 @@ def get_100_rank_match_data_and_save(playerName):
     lobby_type = 7  # The lobby_type for "ranked" is 7 based on OpenDota's constants
 
     url = f"https://api.opendota.com/api/players/{account_id}/matches?limit={limit}&lobby_type={lobby_type}"
-
+    print(url)
     response = requests.get(url)
     
     # error handle
@@ -224,10 +224,13 @@ def calculate_win_rate_and_others_and_save(playerName,matches=None):
                 party_lose_count=party_lose_count+1
         if i == 1:
             first_match_date=matches[i]["start_time"]
-            
-    solo_rank_win_rate=solo_win_count/solo_rank_count*100
-    party_rank_win_rate=party_win_count/party_rank_count*100
-    unknown_rank_win_rate=unknown_win_count/unknown_rank_count*100
+    
+    if solo_rank_count!=0:
+        solo_rank_win_rate=solo_win_count/solo_rank_count*100
+    if party_rank_count!=0:
+        party_rank_win_rate=party_win_count/party_rank_count*100
+    if unknown_rank_count!=0:
+        unknown_rank_win_rate=unknown_win_count/unknown_rank_count*100
     win_rate=(solo_win_count+party_win_count+unknown_win_count)/(solo_rank_count+party_rank_count+unknown_rank_count)*100
     
     dt_object = datetime.utcfromtimestamp(first_match_date)
@@ -238,18 +241,21 @@ def calculate_win_rate_and_others_and_save(playerName,matches=None):
     print(f"其中，最早的一把是{formatted_date}打的")
     print(f"{playerName}的总体胜率是 {win_rate}%")
     print(f"{playerName}的单排把数是 {solo_rank_count}把")
-    print(f"{playerName}的单排胜率是 {solo_rank_win_rate}%")
+    if solo_rank_count!=0:
+        print(f"{playerName}的单排胜率是 {solo_rank_win_rate}%")
     print(f"{playerName}的组排把数是 {party_rank_count}把")
-    print(f"{playerName}的组排胜率是 {party_rank_win_rate}%")
+    if party_rank_count!=0:
+        print(f"{playerName}的组排胜率是 {party_rank_win_rate}%")
     print(f"{playerName}的组队状态不明天梯比赛把数是 {unknown_rank_count}把")
-    print(f"{playerName}的组队状态不明天体比赛胜率是 {unknown_rank_win_rate}%")
+    if unknown_rank_count!=0:
+        print(f"{playerName}的组队状态不明天体比赛胜率是 {unknown_rank_win_rate}%")
     
     
     
 
 def main():
     # who is playing?
-    player="liaoweiran"
+    player="caozei"
     current_mmr=4670
     #
     
