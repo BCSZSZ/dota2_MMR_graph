@@ -78,8 +78,10 @@ def get_100_rank_match_data_and_save(playerName):
     """
 
     json_path=get_accountID_path()
+    print(json_path)
     with open(json_path, "r") as json_file:
         data = json.load(json_file)        
+        
         
     account_id = data[playerName]
     limit = 10000
@@ -639,7 +641,7 @@ def get_normal_match_data_and_analyze(playerName="test"):
     
 def main():
     # who is playing?
-    player="liaoweiran"
+    player="青霄"
     current_mmr=4670
     #
     get_rank_match_data_and_analyze(player)
