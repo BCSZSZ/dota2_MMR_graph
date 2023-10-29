@@ -66,8 +66,8 @@ def write_to_player_json(player_name="maofeng",accout_ID="342958881"):
     data[player_name] = accout_ID
 
     # 写入数据
-    with open(json_path, 'w') as file:
-        json.dump(data, file, indent=4)    
+    with open(json_path, 'w',encoding='utf-8') as file:
+        json.dump(data, file, indent=4,ensure_ascii=False)
 
 # plot mmr related
 def generate_noise(num_points=100, noise_range=(-5, 5)):
@@ -325,9 +325,9 @@ def calculate_win_rate_and_others(playerName="test",matches=None):
     print(f"{playerName}的组排把数是 {party_rank_count}把")
     if party_rank_count!=0:
         print(f"{playerName}的组排胜率是 {party_rank_win_rate}%")
-    print(f"{playerName}的组队状态不明天梯比赛把数是 {unknown_rank_count}把")
+    print(f"{playerName}的组队状态不明比赛把数是 {unknown_rank_count}把")
     if unknown_rank_count!=0:
-        print(f"{playerName}的组队状态不明天体比赛胜率是 {unknown_rank_win_rate}%")
+        print(f"{playerName}的组队状态不明比赛胜率是 {unknown_rank_win_rate}%")
 
 def calculate_hero_related_and_others(playerName,matches=None):
     """get the dota2 hero info from dotaconstants
