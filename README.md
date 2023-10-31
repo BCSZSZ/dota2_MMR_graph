@@ -18,37 +18,23 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
 
 
 <!-- PROJECT LOGO -->
-*** No logo for now.
+<!-- NO logo -->
 
-<h3 align="center">Examine someone, especially your teammate.</h3>
+<h3 align="center">Examine someone, especially your teammate</h3>
+    
+at first it should be a toy to plot the MMR graph of someone, roughly.
 
-  <p align="center">
-    at first it should be a toy to plot the MMR graph of someone, roughly.
-    however it is more fun do explore the open source API of dota2 and make some fun with my friend.
-    and a teeny tiny Github practice, too.
-    I copy this readme template from https://github.com/othneildrew/Best-README-Template
-    everyone should try it, I think.
-    <br />
-    <a href="https://github.com/BCSZSZ/dota2_MMR_graph"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/BCSZSZ/dota2_MMR_graph">View Demo</a>
-    ·
-    <a href="https://github.com/BCSZSZ/dota2_MMR_graph/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/BCSZSZ/dota2_MMR_graph/issues">Request Feature</a>
-  </p>
-</div>
+however it is more fun do explore the open source API of dota2 and make some fun with my friend.
+
+and a teeny tiny Github practice, too.
+
+I copy this readme template from https://github.com/othneildrew/Best-README-Template
+
+everyone should try it, I think.
+
 
 
 
@@ -83,27 +69,9 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
+Here's a blank template to get started
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-### Built With
-
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- GETTING STARTED -->
@@ -195,8 +163,6 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
-
 Project Link: [https://github.com/BCSZSZ/dota2_MMR_graph](https://github.com/BCSZSZ/dota2_MMR_graph)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -206,9 +172,6 @@ Project Link: [https://github.com/BCSZSZ/dota2_MMR_graph](https://github.com/BCS
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
-* []()
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
