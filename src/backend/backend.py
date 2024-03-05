@@ -4,7 +4,7 @@ from pathlib import Path
 from collections import namedtuple
 import time
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import random
 import matplotlib.dates as mdates
 from itertools import islice
@@ -352,6 +352,10 @@ def calculate_hero_related_and_others(playerName,matches=None):
         
     for i in range(len(matches)):
         # every game count hero
+        # fix bug hero id = 0
+        if str(matches[i]["hero_id"]) == "0":
+            continue
+
         hero_data[str(matches[i]["hero_id"])]['count'] +=1  # 0
         if  (matches[i]["player_slot"] <=127 and matches[i]["radiant_win"] == True) or (matches[i]["player_slot"] >=128 and matches[i]["radiant_win"] == False):
             # win game
@@ -408,22 +412,201 @@ def analyze_custom_input(player_name,account_ID,limit,match_type):
     else:
         calculate_win_rate_and_others(player_name,match_data)
         calculate_hero_related_and_others(player_name,match_data)
+
+
+
+
+
+
+# whole new API started here. maybe I have to rewrite everything.
+
+def get_customized_match_data_and_save_stratz_API(playerName,lobbytype,isParty,limit):
+    # 定义变量
+    json_path=get_accountID_path()
+    with open(json_path, "r") as json_file:
+        data = json.load(json_file)        
         
-def main():
-    # who is playing?
-    playerName="小毛峰"
-    current_mmr=4670
-    condition={"limit":1000,"lobby_type":-1}
-    match_data=get_customized_match_data_and_save(playerName,condition)
-    # if there is match_data
-    if not match_data:
-        print("no match data found. please check your account ID.")
+    steam_account_id = data[playerName]  # 玩家 Steam 账户 ID
+    num_matches = limit            # 请求的比赛总数
+    
+    
+    api_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJodHRwczovL3N0ZWFtY29tbXVuaXR5LmNvbS9vcGVuaWQvaWQvNzY1NjExOTgwOTY4ODUwNDEiLCJ1bmlxdWVfbmFtZSI6IldDLkJDU1pTWiIsIlN1YmplY3QiOiI2NWI0MGUzYi1iZDk4LTRmZWItODIxMy03ZjMwODZhMTY0MmIiLCJTdGVhbUlkIjoiMTM2NjE5MzEzIiwibmJmIjoxNjgzMjYwNzk2LCJleHAiOjE3MTQ3OTY3OTYsImlhdCI6MTY4MzI2MDc5NiwiaXNzIjoiaHR0cHM6Ly9hcGkuc3RyYXR6LmNvbSJ9.M5684-du3yGlAuyMJzr9nMQD_1bVbvJZijr5Cky4zNA'         # API 认证令牌
+    # GraphQL 查询和端点
+    url = 'https://api.stratz.com/graphql'
+    query = '''
+    {
+    player(steamAccountId: ''' + str(steam_account_id) + ''') {
+        matches(request: {
+        take: ''' + str(num_matches) + ''',
+        lobbyTypeIds:''' + str(lobbytype) + '''
+        isParty:''' + str(isParty) + '''         
+        }) {
+        id
+        startDateTime
+        didRadiantWin
+        durationSeconds
+        lobbyType
+        gameMode
+        actualRank
+        averageImp
+        averageRank      
+        players {
+            playerSlot
+            kills
+            deaths
+            assists        
+            steamAccountId
+            isRadiant
+            isVictory
+            heroId
+        }
+        }
+    }
+    }
+    '''
+
+    # 请求头
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + api_token
+    }
+
+    # 发送请求
+    response = requests.post(url, json={'query': query}, headers=headers)
+
+    # error handle
+    if response.status_code != 200:
+        print("Query failed to run by returning code of {}. {}".format(response.status_code, query))
+        return None
+    # happy path
+    data = response.json()
+    return data
+    # ## temp code to find my win rate with dashen
+    # count_win=0
+    # count_match=0
+    # count_win_with_SCH=0
+    # count_match_with_SCH=0
+    # count_win_with_SCH_and_without_XMF=0
+    # count_match_with_SCH_and_without_XMF=0
+    # for match in data["data"]["player"]["matches"]:
+    #     player_ids = {player["steamAccountId"]: player for player in match["players"]}
+    #     print(player_ids)
+
+    #     if 136619313 in player_ids:
+    #         count_match += 1
+    #         playerA=player_ids[136619313]
+
+    #         if player_ids[136619313]["isVictory"]:
+    #             count_win += 1
+
+    #         if 243513067 in player_ids:
+    #             playerB = player_ids[243513067]
+    #             if playerA["isRadiant"] == playerB["isRadiant"]:
+    #                 count_match_with_SCH += 1
+                
+    #             if playerB["isVictory"]:
+    #                 count_win_with_SCH += 1
+                    
+    #             if 342958881 not in player_ids:
+    #                 count_match_with_SCH_and_without_XMF += 1
+
+    #                 if playerA["isVictory"]:
+    #                     count_win_with_SCH_and_without_XMF += 1                    
+
+    # # 计算胜率
+    # victory_rate = count_win / count_match if count_match > 0 else 0
+    # cooperation_victory_rate = count_win_with_SCH / count_match_with_SCH if count_match_with_SCH > 0 else 0
+    # cooperation_exclusive_victory_rate = count_win_with_SCH_and_without_XMF / count_match_with_SCH_and_without_XMF if count_match_with_SCH_and_without_XMF > 0 else 0
+
+
+
+
+
+
+    # print("胜利场数:", count_win)
+    # print("与A合作胜利场数:", count_win_with_SCH)
+    # print("与A且B不在胜利场数:", count_win_with_SCH_and_without_XMF)
+    # print("胜率:", victory_rate)
+    # print("与A合作胜率:", cooperation_victory_rate)
+    # print("与A且B不在胜率:", cooperation_exclusive_victory_rate)
+            
+
+def calculate_solo_rank_winrate_by_stratz_API(playerName,lobbytype,isParty,limit):
+    solo_data=get_customized_match_data_and_save_stratz_API(playerName,lobbytype,isParty,limit)
+    count_win=0
+    count_match=100
+    json_path=get_accountID_path()
+    with open(json_path, "r") as json_file:
+        data = json.load(json_file)        
+        
+    steam_account_id = data[playerName]  # 玩家 Steam 账户 ID
+    
+    
+    # count win rate
+    count=0
+    first_match_timestamp=0
+    last_match_timestamp=0
+    for match in solo_data["data"]["player"]["matches"]:
+        # player_ids = {player["steamAccountId"]: player for player in match["players"]}
+        # print(player_ids)
+        count=count+1
+
+        if count==1:
+            # 执行第一个循环的额外操作
+            first_match_timestamp=match["startDateTime"]
+
+        if count==100:
+            last_match_timestamp=match["startDateTime"]
+            
+        for player in match["players"]:
+            if player["steamAccountId"] == int(steam_account_id):
+                if player["isVictory"]:
+                    count_win += 1 
+                break  
+
+    # 计算胜率
+    victory_rate = round(count_win / count_match,4)*100 if count_match > 0 else 0
+    eastern_eight_zone = timezone(timedelta(hours=8))
+    first_date_object = datetime.fromtimestamp(first_match_timestamp,eastern_eight_zone)
+    last_date_object = datetime.fromtimestamp(last_match_timestamp,eastern_eight_zone)
+    first_formatted_date = first_date_object.strftime('%Y/%m/%d %H:%M:%S') 
+    last_formatted_date = last_date_object.strftime('%Y/%m/%d %H:%M:%S') 
+
+
+    lobbytype_word=""
+    if lobbytype==7:
+        lobbytype_word="天梯"
     else:
-        calculate_win_rate_and_others(playerName,match_data)
-        calculate_hero_related_and_others(playerName,match_data)
+        lobbytype_word="普通"
     
-    # get_normal_match_data_and_analyze(player)
+    print(f"当前政审的是{playerName}")    
+    print(f"本次读取了{limit}条{lobbytype_word}比赛数据,其中")
+    print(f"最早的一把是{first_formatted_date}打的")
+    print(f"而最近的一把则是{last_formatted_date}打的")    
+    print(f"{playerName}的总体胜率是 {victory_rate}%")
+    if victory_rate < 46:
+        print("哥们，你可能是个赠品马。")
+    elif 46 <= victory_rate < 48:
+        print("从这一百把平均来看，你的整体表现更像一个下等马，兄弟。")
+    elif 48 <= victory_rate < 52:
+        print("有时带领大家冲向胜利，有时躺，有时被坑得睡不着，你就像大多数人一样是个中等马。")
+    elif 52 <= victory_rate < 54:
+        print("我命由我不由天，你一定下了功夫，试图把胜利掌握在自己手中。你做到了，我的上等马兄弟。")
+    else:
+        print("我愿化作你怀中的阿斗，特等马！让我猜猜，你其实就是大神对吧")
     
+    
+    
+    
+    
+    
+    return victory_rate
+
+
+
+def main():
+    # returned_data=get_customized_match_data_and_save_stratz_API("liaoweiran",7,"false",100)
+    winrate=calculate_solo_rank_winrate_by_stratz_API("大神",7,"false",100)
     
 
 if __name__ == "__main__":
